@@ -1,0 +1,54 @@
+﻿@{
+    ViewData["Title"] = "DataContext";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Конткест данных</h1>
+
+</div>
+<ul>
+    <li>
+        Подключаем пакеты NuGet для работы с EntityFramework(MySql)
+        <ol>
+            <li>Microsoft.EntityFrameworkCore</li>
+            <li>Microsoft.EntityFrameworkCore</li>
+            <li>Pomelo.EntityFrameworkCore.MySql</li>
+        </ol>
+    </li>
+    <li>
+        Создаем папку Data,в ней класс DataContext(наследник DbContext)
+    </li>
+    <li>
+        Поскольку контекст данных будет попадать в контейнер служб,его 
+        конфигурацией также будет руководить контейнер.Поэтому в классе 
+        объявляем конструктор с опциями<br /> 
+        <code>
+            public DataContext(DbContextOptions options) : base(options)<br />
+            {<br />
+            }<br />
+        </code>
+    </li>
+    <li>
+        База данных на PlanetScale одна,поєтому будем разделять таблицы по схемам.
+        Для этого в контексте указываем:<br />
+        <code>
+            protected override void OnModelCreating(ModelBuilder modelBuilder)<br />
+            {<br />
+            modelBuilder.HasDefaultSchema("asp");<br />
+            }<br />
+        </code>
+        Это означает что таблица нашего проекта будут группироваться в схеме "asp"
+        </li>
+        <li>
+             В Program.cs указываем подключение и его настройки,главная особенность
+             МайСкл состоит в том,что он не поддерживает схемы,поэтому группировку
+             таблиц со схемами заменяем на префиксное именование(названия таблиц
+             начинаются с названия схемы)
+        </li>
+        <li>Создаем папку Data/Entities,в ней класс User,
+            в контексте добавляем свойство Users
+        </li>
+        <li>
+            Создаем миграцию
+        </li>
+</ul>

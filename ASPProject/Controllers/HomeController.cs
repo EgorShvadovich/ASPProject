@@ -9,15 +9,17 @@ namespace ASPProject.Controllers
     {
         private readonly ILogger<HomeController> _logger;
 
-        private readonly DateService _dateService;
+        private readonly IDateService _dateService;
         private readonly TimeService _timeService;
         private readonly DateTimeService _dateTimeService;
-        public HomeController(ILogger<HomeController> logger,DateService dateService, TimeService timeService, DateTimeService dateTimeService)
+        private readonly Validation _validatorService = new();
+        public HomeController(ILogger<HomeController> logger,IDateService dateService, TimeService timeService, DateTimeService dateTimeService, Validation validation)
         {
             _logger = logger;
             _dateService = dateService;
             _timeService = timeService;
             _dateTimeService = dateTimeService;
+            _validatorService = validation;
         }
 
         public IActionResult Index()
@@ -42,10 +44,20 @@ namespace ASPProject.Controllers
             ViewData["date-hash"] = _dateService.GetHashCode();
             ViewData["time-hash"] = _timeService.GetHashCode();
             ViewData["datetime-hash"] = _dateTimeService.GetHashCode();
+            ViewData["validation"] = new bool[] {
+            _validatorService.ValidateLogin("NormalLogin1"),
+            _validatorService.ValidateLogin("Normal_Login_2"),
+            _validatorService.ValidateLogin("In-valid login"),
+            _validatorService.ValidateLogin("$ invalid ++")
+            };
             ViewData["ctrl-hash"] = this.GetHashCode();
             return View();
         }
         public IActionResult Privacy()
+        {
+            return View();
+        }
+        public ViewResult Data()
         {
             return View();
         }
