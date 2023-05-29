@@ -34,6 +34,10 @@ namespace ASPProject.Controllers
         public IActionResult Razor()
         {
             return View();
+        } 
+        public IActionResult Login()
+        {
+            return View();
         }
         public IActionResult Services()
         { 
