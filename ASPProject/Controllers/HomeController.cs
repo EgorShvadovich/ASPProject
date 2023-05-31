@@ -35,10 +35,7 @@ namespace ASPProject.Controllers
         {
             return View();
         } 
-        public IActionResult Login()
-        {
-            return View();
-        }
+       
         public IActionResult Services()
         { 
             ViewData["date"] = _dateService.GetDate();
