@@ -1,5 +1,6 @@
 ﻿using ASPProject.Data;
 using ASPProject.Models.User;
+using ASPProject.Services.Hash;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.RegularExpressions;
@@ -9,10 +10,12 @@ namespace ASPProject.Controllers
     public class UserController : Controller
     {
         private readonly DataContext _dataContext;
+        private readonly IHashService _hashService;
 
-        public UserController(DataContext dataContext)
+        public UserController(DataContext dataContext, IHashService hashService)
         {
             _dataContext = dataContext;
+            _hashService = hashService;
         }
 
         public IActionResult Index()
@@ -20,7 +23,7 @@ namespace ASPProject.Controllers
             return View();
         }
 
-        public ViewResult Login(SignUpFormModel? formModel)
+        public IActionResult Login(SignUpFormModel? formModel)
         {
             SignUpViewModel viewModel;
             if (Request.Method == "POST" && formModel != null)
@@ -28,12 +31,33 @@ namespace ASPProject.Controllers
                 // передача формы
                 viewModel = ValidateSignUpForm(formModel);
                 viewModel.FormModel = formModel;
+                HttpContext.Session.SetString("FromData", System.Text.Json.JsonSerializer.Serialize(viewModel));
+                return RedirectToAction(nameof(Login));
             }
             else
             {
-                // первый заход - начало заполнения формы
-                viewModel = new();
-                viewModel.FormModel = null;  // нечего проверять
+                if (HttpContext.Session.Keys.Contains("FromData"))
+                {
+                    String? data = HttpContext.Session.GetString("FromData");
+                    if(data != null)
+                    {
+                        viewModel = System.Text.Json.JsonSerializer.Deserialize<SignUpViewModel>(data)!;
+                        HttpContext.Session.Remove("FromData");
+                    }
+                    else
+                    {
+                        viewModel = new();
+                        viewModel.FormModel = null;  // нечего проверять
+                    }
+                    
+                }
+                else
+                {
+                    // первый заход - начало заполнения формы
+                    viewModel = new();
+                    viewModel.FormModel = null;  // нечего проверять
+                }
+               
             }
             return View(viewModel);  // передаем модель в представление
         }
@@ -90,15 +114,18 @@ namespace ASPProject.Controllers
                 viewModel.PasswordMessage = null;  // все проверки пароля пройдены
             }
 
-
-            if (Regex.IsMatch(formModel.RealName, @"\d|[\W_]"))
+            if(formModel.RealName != null)
             {
-                viewModel.RealNameMessage = "Имя содержит цифры или символы";
+                if (Regex.IsMatch(formModel.RealName, @"\d|[\W_]"))
+                {
+                    viewModel.RealNameMessage = "Имя содержит цифры или символы";
+                }
+                else
+                {
+                    viewModel.PasswordMessage = null;  // все проверки пароля пройдены
+                }
             }
-            else
-            {
-                viewModel.PasswordMessage = null;  // все проверки пароля пройдены
-            }
+            
 
 
             if (String.IsNullOrEmpty(formModel.Email))
@@ -114,7 +141,7 @@ namespace ASPProject.Controllers
                 viewModel.PasswordMessage = null;  // все проверки пароля пройдены
             }
 
-
+            String nameAvatar = null!;
             // сохранение файла
             if (formModel.Avatar != null)  // файл передан
             {
@@ -135,10 +162,29 @@ namespace ASPProject.Controllers
                 // проверить расширение на перечень допустимых
 
                 // формируем имя для файла
-                String name = Guid.NewGuid().ToString() + ext;
+                nameAvatar = Guid.NewGuid().ToString() + ext;
 
                 formModel.Avatar.CopyTo(
-                    new FileStream("wwwroot/avatars/" + name, FileMode.Create));
+                    new FileStream("wwwroot/avatars/" + nameAvatar, FileMode.Create));
+            }
+
+
+            
+            if(viewModel.LoginMessage == null &&
+                viewModel.PasswordMessage == null &&
+                viewModel.AvatarMessage == null)
+            {
+                _dataContext.Users.Add(new()
+                {
+                    Id = Guid.NewGuid(),
+                    Login = formModel.Login,
+                    PasswordHash = _hashService.GetHash(formModel.Password),
+                    Email = formModel.Email!,
+                    CreatedDt = DateTime.Now,
+                    Name = formModel.RealName!,
+                    Avatar = nameAvatar
+                });
+                _dataContext.SaveChanges();
             }
             return viewModel;
         }

@@ -34,8 +34,29 @@ namespace ASPProject.Controllers
         public IActionResult Razor()
         {
             return View();
-        } 
-       
+        }
+        public ViewResult Sessions()
+        {
+            if(HttpContext.Session.Keys.Contains("StoredValue"))
+            {
+                ViewData["StoredValue"] = HttpContext.Session.GetString("StoredValue");
+            }
+            else
+            {
+                ViewData["StoredValue"] = "";
+            }
+            return View();
+        }
+        public RedirectToActionResult RemoveSession()
+        {
+            HttpContext.Session.Remove("StoredValue");
+            return RedirectToAction(nameof(Sessions));
+        }
+        public IActionResult SetSession()
+        {
+            HttpContext.Session.SetString("StoredValue","Данные сессии");
+            return RedirectToAction(nameof(Sessions));
+        }
         public IActionResult Services()
         { 
             ViewData["date"] = _dateService.GetDate();
@@ -63,6 +84,12 @@ namespace ASPProject.Controllers
             return View();
         }
 
+        public ViewResult Middleware()
+        {
+            ViewData["marker"] = HttpContext.Items.ContainsKey("marker")
+                ? HttpContext.Items["marker"] : "Нет маркера";
+            return View("Middleware");
+        }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
