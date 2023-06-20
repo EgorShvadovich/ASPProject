@@ -6,6 +6,13 @@ namespace ASPProject.Data
     public class DataContext : DbContext
     {
         public DbSet<User> Users { get; set; }
+        public DbSet<Section> Sections { get; set; }
+        public DbSet<Topic> Topics { get; set; }
+        public DbSet<Theme> Themes { get; set; }
+        public DbSet<Comment> Comments { get; set; }
+        public DbSet<Visit> Visits { get; set; }
+        public DbSet<Rate> Rates { get; set; }
+
         public DataContext(DbContextOptions options) : base(options)
         {
         }
@@ -13,6 +20,8 @@ namespace ASPProject.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasDefaultSchema("asp");
+            modelBuilder.Entity<Rate>().HasKey(nameof(Rate.ItemId), nameof(Rate.UserId));
+
         }
     }
 }

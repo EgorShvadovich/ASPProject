@@ -1,6 +1,7 @@
 using ASPProject.Data;
 using ASPProject.Middleware;
 using ASPProject.Services;
+using ASPProject.Services.Email;
 using ASPProject.Services.Hash;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -17,8 +18,9 @@ builder.Services.AddSingleton<DateService>();
 builder.Services.AddScoped<TimeService>();
 builder.Services.AddTransient<DateTimeService>();
 builder.Services.AddSingleton<Validation>();
+builder.Services.AddSingleton<IEmailService, GmailService>();
 
-builder.Services.AddSingleton<IHashService,Md5HashService>();
+builder.Services.AddSingleton<IHashService, Md5HashService>();
 
 builder.Services.AddDistributedMemoryCache();
 
@@ -64,6 +66,8 @@ app.UseMarker();
 app.UseAuthorization();
 
 app.UseSession();
+
+app.UseAuthSession();
 
 app.MapControllerRoute(
     name: "default",
