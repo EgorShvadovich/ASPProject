@@ -119,8 +119,8 @@ namespace ASPProject.Controllers
             }
             return Json(new { Success = (user != null) });
         }
-        [HttpPost]
 
+        
         public IActionResult Login(SignUpFormModel? formModel)
         {
             SignUpViewModel viewModel;

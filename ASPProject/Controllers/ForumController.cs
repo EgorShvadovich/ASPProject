@@ -1,5 +1,7 @@
 ﻿using ASPProject.Data;
 using ASPProject.Models.Forum.Index;
+using ASPProject.Services.AuthUser;
+using ASPProject.Services.Validations;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -9,11 +11,15 @@ namespace ASPProject.Controllers
     {
         private readonly DataContext _dataContext;
         private readonly ILogger<ForumController> _logger;
+        private readonly IAuthUserService _authUserService;
+        private readonly IValidationService _validationService;
 
-        public ForumController(DataContext dataContext, ILogger<ForumController> logger)
+        public ForumController(DataContext dataContext, ILogger<ForumController> logger, IAuthUserService authUserService, IValidationService validationService)
         {
             _dataContext = dataContext;
             _logger = logger;
+            _authUserService = authUserService;
+            _validationService = validationService;
         }
 
         public IActionResult Index()
@@ -24,38 +30,23 @@ namespace ASPProject.Controllers
         [HttpPost]
         public RedirectToActionResult AddSection(ForumSectionFormModel model)
         {
-            if (HttpContext.User.Identity?.IsAuthenticated == true)
+            _validationService.IsValid(model);
+
+            Guid? userId = _authUserService.GetUserId(HttpContext);
+            if(userId != null)
             {
-                Guid userId;
-                try
-                {   // извлекаем из Claims ID и ...
-                    userId = Guid.Parse(
-                        HttpContext.User.Claims.First(
-                            c => c.Type == ClaimTypes.Sid
-                        ).Value);
-                }
-                catch (Exception ex)
+                _dataContext.Sections.Add(new()
                 {
-                    _logger.LogError("UpdateEmail exception {ex}", ex.Message);
-                    return RedirectToAction(nameof(Index));
-                }
-                // ... находим по нему пользователя
-                var user = _dataContext.Users.Find(userId);
-                if (user != null)
-                {
-                    _dataContext.Sections.Add(new()
-                    {
-                        Id = Guid.NewGuid(),
-                        Title = model.Title,
-                        Description = model.Description,
-                        CreateDt = DateTime.Now,
-                        ImageUrl = null,
-                        DeleteDt = null,
-                        AuthorId = userId
-                    });
-                    _dataContext.SaveChanges();
-                    _logger.LogInformation("Add OK");
-                }
+                    Id = Guid.NewGuid(),
+                    Title = model.Title,
+                    Description = model.Description,
+                    CreateDt = DateTime.Now,
+                    ImageUrl = null,
+                    DeleteDt = null,
+                    AuthorId = userId.Value
+                });
+                _dataContext.SaveChanges();
+                _logger.LogInformation("Add OK");
             }
             return RedirectToAction(nameof(Index));
         }

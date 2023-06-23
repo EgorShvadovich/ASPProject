@@ -1,8 +1,10 @@
 using ASPProject.Data;
 using ASPProject.Middleware;
 using ASPProject.Services;
+using ASPProject.Services.AuthUser;
 using ASPProject.Services.Email;
 using ASPProject.Services.Hash;
+using ASPProject.Services.Validations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using MySqlConnector;
@@ -18,7 +20,7 @@ builder.Services.AddSingleton<DateService>();
 builder.Services.AddScoped<TimeService>();
 builder.Services.AddTransient<DateTimeService>();
 builder.Services.AddSingleton<Validation>();
-builder.Services.AddSingleton<IEmailService, GmailService>();
+
 
 builder.Services.AddSingleton<IHashService, Md5HashService>();
 
@@ -30,6 +32,11 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+
+builder.Services.AddSingleton<IEmailService, GmailService>();
+
+builder.Services.AddSingleton<IValidationService, ValidationServiceV1>();
+builder.Services.AddScoped<IAuthUserService, ClaimsAuthUserService>();
 
 //контекст данных
 String? connectionString = builder.Configuration.GetConnectionString("PlanetScale");

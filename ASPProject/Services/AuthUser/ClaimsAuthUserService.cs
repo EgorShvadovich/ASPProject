@@ -6,11 +6,12 @@ namespace ASPProject.Services.AuthUser
     public class ClaimsAuthUserService : IAuthUserService
     {
         private readonly DataContext _dataContext;
+        private readonly ILogger<ClaimsAuthUserService> _logger;
 
-
-        public ClaimsAuthUserService(DataContext dataContext)
+        public ClaimsAuthUserService(DataContext dataContext, ILogger<ClaimsAuthUserService> logger)
         {
             _dataContext = dataContext;
+            _logger = logger;
         }
 
         public Guid? GetUserId(HttpContext context)
@@ -30,6 +31,7 @@ namespace ASPProject.Services.AuthUser
             }
             catch (Exception ex)
             {
+                _logger.LogError("claims parse error {ex}", ex.Message);
                 return null;
             }
             // ... находим по нему пользователя

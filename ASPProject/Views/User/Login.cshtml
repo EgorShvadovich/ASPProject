@@ -1,10 +1,10 @@
 ﻿@*  заявляем только тип модели,реально переданный объект будет доступен под именем Model / @Model *@
-@model ASPProject.Models.User.SignUpViewModel 
+@model ASPProject.Models.User.SignUpViewModel
 @{
     ViewData["Title"] = "Sign Up";
 }
 
-@( Model.FormModel == null? "Первый вход" : "Регистрация прошла успешно")
+@(Model.FormModel == null ? "Первый вход" : "Регистрация прошла успешно")
 
 <div class="text-center">
     <h1 class="display-4">Sign Up</h1>
@@ -144,6 +144,6 @@
                 <button type="submit" class="btn btn-primary ms-auto">Зареєструватись</button>
             </div>
         </form>
-        
+
     </div>
 </div>
