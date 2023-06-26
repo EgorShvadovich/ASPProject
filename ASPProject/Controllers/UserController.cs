@@ -26,6 +26,7 @@ namespace ASPProject.Controllers
 
         public JsonResult UpdateEmail(String email)
         {
+          
             // _logger.LogInformation("UpdateEmail works {email}", email);
             // проверяем что пользователь аутентифицирован
             if (HttpContext.User.Identity?.IsAuthenticated != true)
@@ -47,6 +48,12 @@ namespace ASPProject.Controllers
             }
             // ... находим по нему пользователя
             var user = _dataContext.Users.Find(userId);
+
+            if (user.Email == email)
+            {
+                return Json(new { success = false, message = "Email is not changed" });
+            }
+
             if (user == null)
             {
                 return Json(new { success = false, message = "Access denied" });

@@ -4,12 +4,12 @@
     ViewData["Title"] = "Sign Up";
 }
 
-@(Model.FormModel == null ? "Первый вход" : "Регистрация прошла успешно")
+
 
 <div class="text-center">
     <h1 class="display-4">Sign Up</h1>
 </div>
-
+@(Model.FormModel == null ? "Первый вход" : "Регистрация прошла успешно")
 <div class="row">
     <div class="col col-8">
         <form asp-action="Login" enctype="multipart/form-data" method="post">

@@ -10,6 +10,7 @@ namespace ASPProject.Middleware
         public AuthSessionMiddleware(RequestDelegate next)
         {
             _next = next;
+            
         }
         public async Task InvokeAsync(HttpContext context, DataContext dataContext)
         {
@@ -28,6 +29,7 @@ namespace ASPProject.Middleware
                     context.User = new ClaimsPrincipal(new ClaimsIdentity(claims,nameof( AuthSessionMiddleware)));
                 }
             }
+         
             await _next(context);
         }
     }

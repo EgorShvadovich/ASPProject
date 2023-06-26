@@ -28,6 +28,7 @@ function editableBlur(e) {
         method: "POST"
     }).then(r => r.json()).then(j => {
         console.log(j);
+        updateEmail(j.email);
     });
 }
 
@@ -76,4 +77,20 @@ function authButtonClick(){
             alert("Неправильно введено логін/пароль");
         }
     });
+}
+
+function updateEmail(email) {
+    let formData = new FormData();
+    formData.append('Email', email);
+    fetch('/User/UpdateEmail', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+        })
+        .catch(error => {
+            console.error('Ошибка при обновлении поля Email:', error);
+        });
 }

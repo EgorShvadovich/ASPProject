@@ -69,6 +69,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseMarker();
+app.UseMarker2();
 
 app.UseAuthorization();
 
