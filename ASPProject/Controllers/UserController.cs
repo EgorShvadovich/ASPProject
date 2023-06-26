@@ -16,6 +16,7 @@ namespace ASPProject.Controllers
         private readonly ILogger<UserController> _logger;
         private readonly IEmailService _emailService;
 
+
         public UserController(DataContext dataContext, IHashService hashService, ILogger<UserController> logger, IEmailService emailService)
         {
             _dataContext = dataContext;
