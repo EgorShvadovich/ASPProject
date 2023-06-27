@@ -3,7 +3,9 @@ using ASPProject.Models.Forum.Index;
 using ASPProject.Services.AuthUser;
 using ASPProject.Services.Validations;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace ASPProject.Controllers
 {
@@ -24,13 +26,30 @@ namespace ASPProject.Controllers
 
         public IActionResult Index()
         {
+            var validationMessages = HttpContext.Session.GetString("ValidationMessages");
+            if (!string.IsNullOrEmpty(validationMessages))
+            {
+                var deserializedMessages = JsonSerializer.Deserialize<Dictionary<string, string>>(validationMessages);
+                ViewData["ValidationMessages"] = deserializedMessages;
+                HttpContext.Session.Remove("ValidationMessages");
+            }
+
             return View();
         }
 
         [HttpPost]
         public RedirectToActionResult AddSection(ForumSectionFormModel model)
         {
-            _validationService.IsValid(model);
+            var messages = _validationService.ErrorMessages(model);
+            foreach (var (key, message) in messages)
+            {
+                if (message != null)
+                {
+                    var serializedMessages = JsonSerializer.Serialize(messages);
+                    HttpContext.Session.SetString("ValidationMessages", serializedMessages);
+                    return RedirectToAction(nameof(Index));
+                }
+            }
 
             Guid? userId = _authUserService.GetUserId(HttpContext);
             if(userId != null)
