@@ -22,6 +22,8 @@ namespace ASPProject.Data
             modelBuilder.HasDefaultSchema("asp");
             modelBuilder.Entity<Rate>().HasKey(nameof(Rate.ItemId), nameof(Rate.UserId));
 
+            modelBuilder.Entity<Section>().HasOne(s=> s.Author).WithMany().HasForeignKey(s=>s.AuthorId);
+
         }
     }
 }

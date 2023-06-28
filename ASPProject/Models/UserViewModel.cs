@@ -1,0 +1,26 @@
+﻿namespace ASPProject.Models
+{
+    public class UserViewModel
+    {
+        public Guid Id { get; set; }
+        public String Name { get; set; } = null!;
+        public String Email { get; set; } = null!;
+        public String Login { get; set; } = null!;
+        public String? Avatar { get; set; } = null!;
+        public String CreatedDt { get; set; } = null!;
+            
+        public UserViewModel() 
+        {
+        
+        }
+        public UserViewModel(Entities.User user)
+        {
+            Id = user.Id;
+            Name = user.Name;
+            Email = user.Email;
+            Login = user.Login;
+            Avatar = user.Avatar ?? "no-photo.png";
+            CreatedDt = user.CreatedDt.ToShortDateString();
+        }
+    }
+}

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace ASPProject.Controllers
 {
@@ -26,15 +27,33 @@ namespace ASPProject.Controllers
 
         public IActionResult Index()
         {
-            var validationMessages = HttpContext.Session.GetString("ValidationMessages");
+            /*var validationMessages = HttpContext.Session.GetString("ValidationMessages");
             if (!string.IsNullOrEmpty(validationMessages))
             {
                 var deserializedMessages = JsonSerializer.Deserialize<Dictionary<string, string>>(validationMessages);
                 ViewData["ValidationMessages"] = deserializedMessages;
                 HttpContext.Session.Remove("ValidationMessages");
-            }
-
-            return View();
+                
+            }*/
+            int n = 0;
+            ForumIndexModel model = new()
+            {
+                Sections = _dataContext
+                .Sections
+                .Include(s=>s.Author)
+                .Where(s => s.DeleteDt == null)
+                .OrderBy(s=>s.CreateDt)
+                .AsEnumerable().Select(s => new ForumSectionViewModel
+                {
+                    Id = s.Id.ToString(),
+                    Title = s.Title,
+                    Description = s.Description,
+                    CreateDt = s.CreateDt.ToShortDateString(),
+                    ImageUrl = s.ImageUrl == null ? $"/img/section/section{n++}.png" : $"/img/section/{s.ImageUrl}",
+                    Author = new(s.Author),
+                }),
+            };
+            return View(model);
         }
 
         [HttpPost]

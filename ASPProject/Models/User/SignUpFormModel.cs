@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Text.Json.Serialization;
 
 namespace ASPProject.Models.User
 {
@@ -15,7 +16,8 @@ namespace ASPProject.Models.User
         [FromForm(Name = "user-email")]
         public string Email { get; set; } = null!;
 
-        [FromForm(Name = "user-email")]
+        [FromForm(Name = "user-avatar")]
+        [JsonIgnore]
         public IFormFile Avatar { get; set; } = null!;
         [FromForm(Name = "rememeber")]
         public string IsAgree { get; set; } = null!;
