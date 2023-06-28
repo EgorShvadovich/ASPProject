@@ -1,5 +1,4 @@
-﻿@using System.Security.Claims
-@model ASPProject.Models.Forum.Index.ForumSectionViewModel
+﻿@model ASPProject.Models.Forum.Index.ForumSectionViewModel
 
 <div class="card mb-3">
     <div class="row g-0">
@@ -16,7 +15,6 @@
                 Автор: 
                 @{
                     String avatar = Model.Author.Avatar;
-
                     if (avatar == "")
                     {
                         avatar = "no-photo.png";
