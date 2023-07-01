@@ -5,23 +5,28 @@
         <div class="col-md-2">
             <img src="@Model.ImageUrl" class="img-fluid rounded-start" alt="...">
         </div>
-        <div class="col-md-10">
+        <div class="col-md-10 d-flex flex-column">
             <div class="card-body">
                 <h5 class="card-title">@Model.Title</h5>
                 <p class="card-text">@Model.Description</p>
                 <p class="card-text"><small class="text-muted">Створено: @Model.CreateDt</small></p>
             </div>
-            <div class="card-footer">
-                Автор: 
-                @{
-                    String avatar = Model.Author.Avatar;
-                    if (avatar == "")
-                    {
-                        avatar = "no-photo.png";
+            <div class="card-footer ms-auto" style="width:100%">
+                <div class="d-flex align-items-center" style="gap:1em">
+                    Автор:
+                    @{
+                        String avatar = Model.Author.Avatar;
+                        if (avatar == "")
+                        {
+                            avatar = "no-photo.png";
+                        }
                     }
-                }
-                <img src="/avatars/@avatar" alt="Avatar" class="rounded-circle f-40 mx-3">
-                <span title="@Model.Author.Email">@Model.Author.Name</span>
+                    <img src="/avatars/@avatar" alt="Avatar" class="rounded-circle f-40 mx-1">
+                    <span title="@Model.Author.Email">@Model.Author.Name</span>
+                    <i class="bi bi-hand-thumbs-up "></i>234
+                    <i class="bi bi-hand-thumbs-down"></i>45
+                    <a asp-controller="Forum" asp-action="Section" asp-route-id="@(Model.Id)" class="btn btn-outline-secondary ms-auto"><i class="bi bi-arrow-right-square"></i></a>
+                </div>
             </div>
         </div>
     </div>

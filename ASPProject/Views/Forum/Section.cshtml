@@ -1,0 +1,54 @@
+﻿@{
+    ViewData["Title"] = "Section";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Раздел</h1>
+</div>
+
+
+@ViewData["id"]
+
+
+@if (Context.User.Identity?.IsAuthenticated == true)
+{
+   if(Model.ErrorMessages != null)
+   {
+       <b>@Model.ErrorMessages["Title"]</b>
+   }
+       <form asp-action="AddTopic" asp-controller="Forum"
+       method="post" enctype="multipart/form-data">
+
+            <label for="topic-title" class="form-label">Логін</label>
+            <div class="input-group mb-3">
+                <span class="input-group-text py-0 px-2"
+                      id="topic-title-addon"><i class="bi bi-chat-quote"></i></span>
+                <input type="text" class="form-control" 
+                       id="topic-title" name="topic-title"
+                       placeholder="Введіть назву розділу"
+                       aria-describedby="topic-title-addon">
+
+            </div>
+
+            <label for="topic-description" class="form-label">Опис</label>
+            <div class="input-group">
+                <span class="input-group-text">With textarea</span>
+                      <textarea class="form-control" aria-label="With textarea"
+                          id="topic-description" name="topic-description"
+                          placeholder="Введіть опис розділу"></textarea>
+            </div>
+
+            <label for="topic-image" class="form-label">Аватарка</label>
+            <div class="input-group mb-3">
+                <span class="input-group-text py-0 px-2"
+                      id="topic-image-addon"><i class="bi-person-circle fs-bi"></i></span>
+                <input type="file" class="form-control custom-file-input"
+                       id="topic-image" name="topic-image"
+                       aria-describedby="user-avatar-addon">
+            </div>
+
+            <input type="hidden" name="section-id" value="">
+
+            <button type="submit" class="btn-primary">Додати</button>
+       </form>
+}

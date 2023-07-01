@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using ASPProject.Models.Forum.Section;
 
 namespace ASPProject.Controllers
 {
@@ -56,6 +57,61 @@ namespace ASPProject.Controllers
             return View(model);
         }
 
+
+        public ViewResult Section(Guid id)
+        {
+            SectionViewModel sectionViewModel = new()
+            {
+                SectionId = id.ToString()
+            };
+           if(HttpContext.Session.Keys.Contains("AddTopicMessage"))
+            {
+                sectionViewModel.ErrorMessages = JsonSerializer.Deserialize<Dictionary<String, String?>>(HttpContext.Session.GetString("AddTopicMessage"));
+                HttpContext.Session.Remove("AddTopicMessage");
+            }
+            return View(sectionViewModel);
+        }
+
+        [HttpPost]
+        public RedirectToActionResult AddTopic(TopicFormModel formModel)
+        {
+            var messages = _validationService.ErrorMessages(formModel);
+            foreach (var (key, message) in messages)
+            {
+                if (message != null)
+                {
+
+                    var serializedMessages = JsonSerializer.Serialize(messages);
+                    HttpContext.Session.SetString("AddTopicMessage", serializedMessages);
+                    return RedirectToAction(nameof(Section),new {id = formModel.SectionId});
+                }
+            }
+            Guid? userId = _authUserService.GetUserId(HttpContext);
+            if (userId != null)
+            {
+                String? nameAvatar = null;
+                if(formModel.ImageFile != null)
+                {
+                    String ext = Path.GetExtension(formModel.ImageFile.FileName);
+                    nameAvatar = Guid.NewGuid().ToString() + ext;
+                    using FileStream fstream = new ("wwwroot/img/" + nameAvatar, FileMode.Create);
+                    formModel.ImageFile.CopyTo(fstream);
+                }
+                _dataContext.Topics.Add(new()
+                {
+                    Id = Guid.NewGuid(),
+                    AuthorId = userId.Value,
+                    SectionId = formModel.SectionId,
+                    Title = formModel.Title,
+                    Description = formModel.Description,
+                    CreateDt = DateTime.Now,
+                    ImageUrl = nameAvatar 
+                });
+                _dataContext.SaveChanges();
+            }
+            return RedirectToAction(nameof(Section));
+        }
+
         [HttpPost]
         public RedirectToActionResult AddSection(ForumSectionFormModel model)
         {
@@ -71,7 +127,15 @@ namespace ASPProject.Controllers
             }
 
             Guid? userId = _authUserService.GetUserId(HttpContext);
-            if(userId != null)
+            String? nameAvatar = null;
+            if (model.ImageFile != null)
+            {
+                String ext = Path.GetExtension(model.ImageFile.FileName);
+                nameAvatar = Guid.NewGuid().ToString() + ext;
+                using FileStream fstream = new("wwwroot/img/section/" + nameAvatar, FileMode.Create);
+                model.ImageFile.CopyTo(fstream);
+            }
+            if (userId != null)
             {
                 _dataContext.Sections.Add(new()
                 {
@@ -79,7 +143,7 @@ namespace ASPProject.Controllers
                     Title = model.Title,
                     Description = model.Description,
                     CreateDt = DateTime.Now,
-                    ImageUrl = null,
+                    ImageUrl = nameAvatar,
                     DeleteDt = null,
                     AuthorId = userId.Value
                 });
