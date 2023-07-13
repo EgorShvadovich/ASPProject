@@ -1,7 +1,9 @@
-﻿namespace ASPProject.Entities
+﻿
+namespace ASPProject.Entities
 {
     public class Topic
     {
+
         public Guid         Id          { get; set; }
         public String       Title       { get; set; } = null!;
         public String?      Description { get; set; }
@@ -10,5 +12,6 @@
         public Guid         SectionId   { get; set; }
         public DateTime     CreateDt    { get; set; }
         public DateTime?    DeleteDt    { get; set; }
+        public User Author { get; set; }
     }
 }

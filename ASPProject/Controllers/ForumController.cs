@@ -8,6 +8,9 @@ using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using ASPProject.Models.Forum.Section;
+using ASPProject.Models.Forum.Topic;
+using ASPProject.Services;
+using ASPProject.Models.Forum.Theme;
 
 namespace ASPProject.Controllers
 {
@@ -17,15 +20,145 @@ namespace ASPProject.Controllers
         private readonly ILogger<ForumController> _logger;
         private readonly IAuthUserService _authUserService;
         private readonly IValidationService _validationService;
+        private readonly IDateService _dateService;
 
-        public ForumController(DataContext dataContext, ILogger<ForumController> logger, IAuthUserService authUserService, IValidationService validationService)
+        public ForumController(DataContext dataContext, ILogger<ForumController> logger, IAuthUserService authUserService, IValidationService validationService, IDateService dateService)
         {
             _dataContext = dataContext;
             _logger = logger;
             _authUserService = authUserService;
             _validationService = validationService;
+            _dateService = dateService;
         }
 
+
+        public IActionResult Theme([FromRoute] Guid id)
+        {
+            var theme = _dataContext
+                .Themes
+                .Include(t => t.Author)
+                .Where(t => t.DeleteDt == null && t.Id == id)
+                .FirstOrDefault();
+            if (theme == null)
+            {
+                return NotFound();
+            }
+
+            ThemePageModel pageModel = new()
+            {
+                Theme = new(theme),
+                Comments = _dataContext.Comments
+                .Include(c => c.Author)
+                .OrderBy(c => c.CreateDt)
+                .Where(c => c.DeleteDt == null && c.ThemeId == id)
+                .Select(c => new CommentViewModel(c))
+                .ToList()
+            };
+
+            return View(pageModel);
+        }
+        [HttpPost]
+        public RedirectToActionResult AddComment([FromForm] CommentFormModel formModel)
+        {
+            var messages = _validationService.ErrorMessages(formModel);
+            foreach (var (key, message) in messages)
+            {
+                if (message != null)
+                {
+
+                    var serializedMessages = JsonSerializer.Serialize(messages);
+                    HttpContext.Session.SetString("AddCommentMessage", serializedMessages);
+                    return RedirectToAction(nameof(Theme), new { id = formModel.ThemeId });
+                }
+            }
+            Guid? userId = _authUserService.GetUserId(HttpContext);
+            if (userId != null)
+            {
+                _dataContext.Comments.Add(new()
+                {
+                    Id = Guid.NewGuid(),
+                    AuthorId = userId.Value,
+                    Content = formModel.Content,
+                    ThemeId = formModel.ThemeId,
+                    CreateDt = DateTime.Now
+                });
+                _dataContext.SaveChanges();
+            }
+            return RedirectToAction(nameof(Theme), new { id = formModel.ThemeId });
+        }
+        public IActionResult Topic([FromRoute] Guid id)
+        {
+            var topic = _dataContext.Topics.Include(t => t.Author).FirstOrDefault(t => t.Id == id);
+            if(topic == null)
+            {
+                return NotFound();
+            }
+            TopicPageModel model = new()
+            {
+                Topic = new(topic)
+            };
+            model.Theme = _dataContext
+                .Themes
+                .Include(t => t.Author)
+                .Include(t => t.Comments)
+                .Where(t => t.TopicId == topic.Id && t.DeleteDt == null)
+                .Select(t => new ThemeViewModel(t))
+                .ToList();
+
+            if (HttpContext.Session.Keys.Contains("AddThemeMessage"))
+            {
+                model.ErrorMessages =
+                    JsonSerializer.Deserialize<Dictionary<String, String?>>(
+                        HttpContext.Session.GetString("AddThemeMessage")!);
+
+
+
+                HttpContext.Session.Remove("AddThemeMessage");
+            }
+            return View(model);
+        }
+
+
+        [HttpPost]
+        public RedirectToActionResult AddTheme(ThemeFormModel formModel)
+        {
+            var messages = _validationService.ErrorMessages(formModel);
+            foreach (var (key, message) in messages)
+            {
+                if (message != null)
+                {
+
+                    var serializedMessages = JsonSerializer.Serialize(messages);
+                    HttpContext.Session.SetString("AddThemeMessage", serializedMessages);
+                    return RedirectToAction(nameof(Section), new { id = formModel.TopicId });
+                }
+            }
+            Guid? userId = _authUserService.GetUserId(HttpContext);
+            if (userId != null)
+            {
+                DateTime dt = DateTime.Now;
+                Guid themeId = Guid.NewGuid();
+                _dataContext.Themes.Add(new()
+                {
+                    Id = themeId,
+                    AuthorId = userId.Value,
+                    TopicId = formModel.TopicId,
+                    Title = formModel.Title,
+                    CreateDt = dt
+                });
+                
+                _dataContext.Comments.Add(new()
+                {
+                    Id = Guid.NewGuid(),
+                    AuthorId = userId.Value,
+                    Content = formModel.Content,
+                    ThemeId = themeId,
+                    CreateDt = dt
+                });
+                _dataContext.SaveChanges();
+            }
+            return RedirectToAction(nameof(Topic), new { id = formModel.TopicId });
+        }
         public IActionResult Index()
         {
             /*var validationMessages = HttpContext.Session.GetString("ValidationMessages");
@@ -41,9 +174,9 @@ namespace ASPProject.Controllers
             {
                 Sections = _dataContext
                 .Sections
-                .Include(s=>s.Author)
+                .Include(s => s.Author)
                 .Where(s => s.DeleteDt == null)
-                .OrderBy(s=>s.CreateDt)
+                .OrderBy(s => s.CreateDt)
                 .AsEnumerable().Select(s => new ForumSectionViewModel
                 {
                     Id = s.Id.ToString(),
@@ -58,17 +191,48 @@ namespace ASPProject.Controllers
         }
 
 
-        public ViewResult Section(Guid id)
+        public IActionResult Section(Guid id)
         {
-            SectionViewModel sectionViewModel = new()
+            var section = _dataContext.Sections
+                .Include(s=>s.Author)
+                .FirstOrDefault( s => s.Id == id);
+            if (section == null)
             {
-                SectionId = id.ToString()
+                Response.StatusCode = StatusCodes.Status404NotFound;
+                return NotFound();
+            }
+            SectionPageModel sectionViewModel = new()
+            {
+
+                Section = new ForumSectionViewModel
+                {
+                    Id = section.Id.ToString(),
+                    Title = section.Title,
+                    Description = section.Description,
+                    CreateDt = section.CreateDt.ToShortDateString(),
+                    Author = new(section.Author)
+                }
             };
-           if(HttpContext.Session.Keys.Contains("AddTopicMessage"))
+            if (HttpContext.Session.Keys.Contains("AddTopicMessage"))
             {
                 sectionViewModel.ErrorMessages = JsonSerializer.Deserialize<Dictionary<String, String?>>(HttpContext.Session.GetString("AddTopicMessage"));
                 HttpContext.Session.Remove("AddTopicMessage");
             }
+
+
+            sectionViewModel.Topics = _dataContext.Topics
+                .Include(t => t.Author)
+                .Where(t => t.DeleteDt == null)
+                 .OrderByDescending(t => t.CreateDt).AsEnumerable()
+                 .Select(t => new TopicViewModel()
+                 {
+                     Id = t.Id.ToString(),
+                     Title = t.Title,
+                     Description = t.Description,
+                     CreateDt = _dateService.FormatDateTime(t.CreateDt),
+                     ImageUrl = "/img/" + t.ImageUrl,
+                     Author = new(t.Author)
+                 }).ToList();
             return View(sectionViewModel);
         }
 
@@ -83,18 +247,18 @@ namespace ASPProject.Controllers
 
                     var serializedMessages = JsonSerializer.Serialize(messages);
                     HttpContext.Session.SetString("AddTopicMessage", serializedMessages);
-                    return RedirectToAction(nameof(Section),new {id = formModel.SectionId});
+                    return RedirectToAction(nameof(Section), new { id = formModel.SectionId });
                 }
             }
             Guid? userId = _authUserService.GetUserId(HttpContext);
             if (userId != null)
             {
                 String? nameAvatar = null;
-                if(formModel.ImageFile != null)
+                if (formModel.ImageFile != null)
                 {
                     String ext = Path.GetExtension(formModel.ImageFile.FileName);
                     nameAvatar = Guid.NewGuid().ToString() + ext;
-                    using FileStream fstream = new ("wwwroot/img/" + nameAvatar, FileMode.Create);
+                    using FileStream fstream = new("wwwroot/img/" + nameAvatar, FileMode.Create);
                     formModel.ImageFile.CopyTo(fstream);
                 }
                 _dataContext.Topics.Add(new()
@@ -105,9 +269,10 @@ namespace ASPProject.Controllers
                     Title = formModel.Title,
                     Description = formModel.Description,
                     CreateDt = DateTime.Now,
-                    ImageUrl = nameAvatar 
+                    ImageUrl = nameAvatar
                 });
                 _dataContext.SaveChanges();
+
             }
             return RedirectToAction(nameof(Section));
         }
