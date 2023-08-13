@@ -11,6 +11,7 @@ using ASPProject.Models.Forum.Section;
 using ASPProject.Models.Forum.Topic;
 using ASPProject.Services;
 using ASPProject.Models.Forum.Theme;
+using ASPProject.Models;
 
 namespace ASPProject.Controllers
 {
@@ -54,7 +55,11 @@ namespace ASPProject.Controllers
                 .Select(c => new CommentViewModel(c))
                 .ToList()
             };
-
+            Guid? authUserId = _authUserService.GetUserId(HttpContext);
+            if (authUserId != null)
+            {
+                ViewData["authUser"] = new UserViewModel(_dataContext.Users.Find(authUserId.Value)!);
+            }
             return View(pageModel);
         }
         [HttpPost]
@@ -80,7 +85,8 @@ namespace ASPProject.Controllers
                     AuthorId = userId.Value,
                     Content = formModel.Content,
                     ThemeId = formModel.ThemeId,
-                    CreateDt = DateTime.Now
+                    CreateDt = DateTime.Now,
+                    ReplyId = formModel.ReplyId
                 });
                 _dataContext.SaveChanges();
             }

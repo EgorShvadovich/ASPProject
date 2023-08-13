@@ -7,6 +7,6 @@ namespace ASPProject.Models.Forum.Theme
         [ValidationRules(ValidationRule.NotEmpty)]
         public String Content { get; set; } = null!;
         public Guid ThemeId { get; set; }
-
+        public Guid? ReplyId { get; set; }
     }
 }
