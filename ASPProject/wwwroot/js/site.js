@@ -9,7 +9,27 @@
     for (let pencil of document.querySelectorAll("[data-edit]")) {
         pencil.addEventListener('click', editProfileClick);
     }
+    for (let rate of document.querySelectorAll("[data-rate-item-id]")) {
+        rate.addEventListener('click', rateClick);
+    }
 });
+
+function rateClick(e) {
+    const rateItemId = e.target.closest("[data-rate-item-id]");
+    if (!rateItemId) {
+        throw "Invalid structure - 'data-rate-item-id' not found";
+    }
+    const itemId = rateItemId.getAttribute('data-rate-item-id');
+    const rateValue = rateItemId.getAttribute('data-rate-value');
+    console.log('rateClick ' + itemId + ' ' + rateValue);
+    fetch(`/api/rate?itemId=${itemId}&rateValue=${rateValue}`, {
+        method: "POST"
+    }).then(r => {
+        const contentType = r.headers.get("Content-Type");
+        if (contentType.startsWith('text')) return r.text();
+        else return r.json();
+    }).then(console.log);
+}
 
 function editProfileClick(e) {
     const p = e.target.closest('p');

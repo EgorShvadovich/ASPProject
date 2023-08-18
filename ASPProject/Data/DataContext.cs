@@ -27,6 +27,10 @@ namespace ASPProject.Data
             modelBuilder.Entity<Topic>()
                 .HasOne(t => t.Author).WithMany()
                 .HasForeignKey(t => t.AuthorId);
+            modelBuilder.Entity<Section>()
+              .HasMany(s => s.Rates)
+              .WithOne()
+              .HasForeignKey(r => r.ItemId);
 
             modelBuilder.Entity<Theme>()
                 .HasOne(t => t.Author).WithMany()

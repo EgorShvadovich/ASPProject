@@ -1,0 +1,90 @@
+﻿@{
+    ViewData["Title"] = "Front";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Распределенная архитектура</h1>
+
+</div>
+
+<p>
+    Преимущества Razor - в возможности активного формирования контента страницы.
+    НО! Эти возможности сильно ограничены для скриптов: либо все скрипты нужно
+    окружать Razor-ом,либо активная подстанова в них не будет осуществляться.
+    Это побуждает разделить архитектуру приложения на 2 части с четко выраженными
+    областями работы - на сервере или на клиенте
+</p>
+
+<p>
+    Дополнительно, распределенная архитектура упрощает создание дополнительных
+    приложений - десктоп или мобильной версий.
+</p>
+
+<p>
+    В веб-приложениях обмен данными происходит в ajax (асинхронные запросы
+    JS)
+</p>
+
+<div class="alert alert-secondary" role="alert">
+    <button class="btn btn-primary" onclick="getClick()" GET>GET</button>
+    <button class="btn btn-success" onclick="postClick()" POST>POST</button>
+    <button class="btn btn-warning" onclick="putClick()">PUT</button>
+    <button class="btn btn-danger"  onclick="deleteClick()">DELETE</button>
+</div>
+
+<div class="alert alert-dark" role="alert" id="out"> 
+
+</div>
+<script>
+    function getClick()
+    {
+        fetch("/api/back?x=10&w=20",{
+            headers: {
+            "My-Header": "my value"}
+        })
+        .then(response => response.json())
+        .then(j => {
+            out.innerText = JSON.stringify(j);
+        });
+    }
+    function postClick() {
+        fetch("/api/back",{
+        method:"POST",
+        headers:{
+        "Connection":"Close",
+        "Content-Type":"application/json"
+        },
+        body:'{"data": "POST data from JS","meta": "meta data"}'
+        })
+            .then(response => response.json())
+            .then(j => {
+                out.innerText = JSON.stringify(j);
+            });
+    }
+    function putClick() {
+        fetch("/api/back", {
+            method: "PUT",
+            headers: {
+                "Connection": "Close",
+                "Content-Type": "application/json"
+            },
+            body: '{"data": PUT data from JS}'
+        }).then(response => response.json())
+          .then(j => {
+              out.innerText = JSON.stringify(j);
+           });
+    }
+    function deleteClick() {
+        fetch("/api/back", {
+            method: "DELETE",
+            headers: {
+                "Connection": "Close",
+                "Content-Type": "application/json"
+            },
+            body: '{"data": DELETE data from JS}'
+        }).then(response => response.json())
+            .then(j => {
+                out.innerText = JSON.stringify(j);
+            });
+    }
+</script>

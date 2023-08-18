@@ -9,7 +9,8 @@
         public Guid         AuthorId    { get; set; }
         public DateTime     CreateDt    { get; set; }
         public DateTime?    DeleteDt    { get; set; }
-        
+
+        public IEnumerable<Rate> Rates { get; set; }
         public User Author { get; set; }
     }
 }

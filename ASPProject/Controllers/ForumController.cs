@@ -181,6 +181,7 @@ namespace ASPProject.Controllers
                 Sections = _dataContext
                 .Sections
                 .Include(s => s.Author)
+                .Include(s => s.Rates)
                 .Where(s => s.DeleteDt == null)
                 .OrderBy(s => s.CreateDt)
                 .AsEnumerable().Select(s => new ForumSectionViewModel
@@ -191,6 +192,8 @@ namespace ASPProject.Controllers
                     CreateDt = s.CreateDt.ToShortDateString(),
                     ImageUrl = s.ImageUrl == null ? $"/img/section/section{n++}.png" : $"/img/section/{s.ImageUrl}",
                     Author = new(s.Author),
+                    Likes = s.Rates.Count(r => r.Raiting > 0),
+                    Dislikes = s.Rates.Count(r => r.Raiting < 0)
                 }),
             };
             return View(model);
