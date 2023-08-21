@@ -21,17 +21,37 @@ namespace ASPProject.Controllers
                 };
             }
             Response.StatusCode = StatusCodes.Status400BadRequest;
-            return "\"Paameter 'y' required\"";
+            return "\"Parameter 'y' required\"";
            
         }
         [HttpPost]
-        public object DoPost(dynamic body) 
+        public object Post(dynamic body) 
         {
 
             return new
             {
                 message = "hello from post method",
                 body
+            };
+        }
+
+
+        [HttpPut]
+        public object Put(dynamic x)
+        {
+            return new
+            {
+                message = "hello from put method",
+                x
+            };
+        }
+        [HttpDelete]
+        public object Delete([FromQuery] int x)
+        {
+            return new
+            {
+                message = "hello from delete method",
+                x
             };
         }
     }
