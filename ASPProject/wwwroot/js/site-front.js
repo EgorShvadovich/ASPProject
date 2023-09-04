@@ -1,4 +1,6 @@
 ﻿document.addEventListener('DOMContentLoaded', () => {
+    const authButton = document.getElementById("auth-button-front");
+    
     fetch('/tpl/forum-index.html')
         .then(r => r.text())
         .then(t => {
@@ -9,6 +11,20 @@
             }
             else throw "pagebody element not found";
         });
+    if (authButton) {
+        authButton.addEventListener('click', authButtonClick);
+    }
+    else {
+        console.error("Element not found: auth-button");
+    }
+    let token = localStorage.getItem("token");
+    let signIcon = document.getElementById("sign-icon");
+    if (token) {
+        signIcon.innerHTML = '<i class="bi bi-box-arrow-right f-large mx-3">';
+    }
+    else {
+        signIcon.innerHTML = '<i class="bi bi-person-down f-large mx-3" role="button" data-bs-toggle="modal" data-bs-target="#authModal"></i>';
+    }
     window.addEventListener("hashchange", onHashChanged)
 });
 
@@ -258,4 +274,47 @@ function fillTemplatePar3(templateUrl, dataUrl,containerUrl) {
         })
     );
 
+}
+
+
+
+function authButtonClick() {
+    const authLogin = document.getElementById("auth-login");
+    if (!authLogin) throw "Element not found: auth-login";
+
+    const authPassword = document.getElementById("auth-password");
+    if (!authPassword) throw "Element not found: auth-password";
+    if (authLogin.value.length === 0) {
+        alert("Необхідно ввести логін");
+        return;
+    }
+    if (authPassword.value.length === 0) {
+        alert("Необхідно ввести пароль");
+        return;
+    }
+
+    const body = JSON.stringify({
+        login: authLogin.value,
+        password: authPassword.value
+    });
+    console.log(body);
+
+    window.fetch(
+        "/api/auth", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(
+            {
+                login: authLogin.value,
+                password: authPassword.value
+            })
+    }
+    ).then(r => r.json()).then(j => {
+        //console.log(j);
+        if (j.id !== '') {
+            localStorage.setItem('token', j.id);
+        }
+    });
 }

@@ -12,6 +12,7 @@ namespace ASPProject.Data
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Visit> Visits { get; set; }
         public DbSet<Rate> Rates { get; set; }
+        public DbSet<Token> Tokens { get; set; }
 
         public DataContext(DbContextOptions options) : base(options)
         {
@@ -20,6 +21,11 @@ namespace ASPProject.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasDefaultSchema("asp");
+            modelBuilder.Entity<Token>()
+                .Property(t => t.Id)
+                .HasMaxLength(32)
+                .IsFixedLength();
+
             modelBuilder.Entity<Rate>().HasKey(nameof(Rate.ItemId), nameof(Rate.UserId));
 
             modelBuilder.Entity<Section>().HasOne(s=> s.Author).WithMany().HasForeignKey(s=>s.AuthorId);
