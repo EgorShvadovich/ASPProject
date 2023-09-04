@@ -39,8 +39,51 @@ namespace ASPProject.Controllers
                    Dislikes = s.Rates.Count(r => r.Raiting < 0)
                });
         }
+        [HttpPost]
+        public object AddSection([FromBody] SectionData sectionData)
+        {
+            if (sectionData == null)
+            {
+                Response.StatusCode = StatusCodes.Status406NotAcceptable;
+                return new { Status = "406", Message = "SectionData required" };
+            }
+            if (String.IsNullOrEmpty(sectionData.Title)
+             || String.IsNullOrEmpty(sectionData.Description))
+            {
+                Response.StatusCode = StatusCodes.Status406NotAcceptable;
+                return new { Status = "406", Message = "SectionData could not be empty" };
+            }
+
+            Guid id = Guid.NewGuid();
+
+            _dataContext.Sections.Add(new()
+            {
+                Id = id,
+                Title = sectionData.Title,
+                Description = sectionData.Description,
+                CreateDt = DateTime.Now,
+                AuthorId = _dataContext.Users.First().Id,
+                DeleteDt = null,
+            });
+            _dataContext.SaveChanges();
+
+            return new { Status = "200", Message = id.ToString() };
+        }
+    }
+    /* Д.З. Добавление разделов. Вариант API.
+     * Реализовать проверку полученных данных (бэкенд) на наличие (уникальность) в
+     * БД раздела с заданным заголовком (title). Возращать 409 Conflict
+     * Обеспечить обновление (без перегрузки страницы) перечня разделов в случае успешного добавления,
+     * в противном случае вывести сообщение об отказе добавления.
+     */
+
+    public class SectionData
+    {
+        public String Title { get; set; } = null!;
+        public String Description { get; set; } = null!;
     }
 }
+
 
 /*
  CRUD-полнота - свойство контроллера, означающее что в нем реализованы 
